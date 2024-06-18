@@ -32,7 +32,7 @@ class Placemarks:
         return RE_SPACE.sub(' ', text.replace('-', ' '))
 
 
-@dataclass
+@dataclass(frozen=True)
 class Calendar:
     start_date: datetime.date
     end_date: datetime.date
@@ -57,17 +57,22 @@ class Calendar:
     def service_id(self):
         return f'{Calendar.gtfs_date(self.start_date)}-{Calendar.gtfs_date(self.end_date)}-{self.day_mask}'
 
+
+    @staticmethod
+    def header():
+        return ('service_id', 'start_date', 'end_date', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday')
+
     def serialize(self):
         return (self.service_id, 
                 Calendar.gtfs_date(self.start_date), 
                 Calendar.gtfs_date(self.end_date),
-                self.monday,
-                self.tuesday,
-                self.wednesday,
-                self.thursday,
-                self.friday,
-                self.saturday,
-                self.sunday
+                int(self.monday),
+                int(self.tuesday),
+                int(self.wednesday),
+                int(self.thursday),
+                int(self.friday),
+                int(self.saturday),
+                int(self.sunday)
                 )
 
 
@@ -82,6 +87,10 @@ class StopTime:
     @staticmethod
     def gtfs_time(time_val):
         return time_val.strftime('%H:%M:%S')
+
+    @staticmethod
+    def header():
+        return ('trip_id', 'stop_sequence', 'stop_id', 'arrival_time', 'departure_time')
 
     def serialize(self):
         return (self.trip_id,
@@ -109,6 +118,10 @@ class Trip:
         st.trip_id = self.trip_id
         st.stop_sequence = len(self.stop_times)
         self.stop_times.append(st)
+
+    @staticmethod
+    def header():
+        return ('trip_id', 'route_id', 'service_id', 'direction_id', 'trip_headsign', 'trip_short_name')
 
     def serialize(self):
         return (self.trip_id,
@@ -250,12 +263,37 @@ def csv_as_objects(csv_path):
             yield types.SimpleNamespace(**row_dict)
 
 
+def write_all(csv_path, records):
+    with open(csv_path, 'w', encoding='utf-8') as fp:
+        wr = csv.writer(fp)
+        wr.writerow(records[0].header())
+        for row in records:
+            wr.writerow(row.serialize())
+
+
 def main():
     routes = csv_as_objects(sys.argv[1])
     schedule_dir = Path(sys.argv[2])
+    out_dir = Path(sys.argv[3])
+
     state = ParseState()
     for route in routes:
         parse_route(schedule_dir, route, state)
+
+
+    calendars = set()
+    write_all(out_dir / 'trips.txt', state.flights)
+    stop_times = []
+    for trip in state.flights:
+        stop_times.extend(trip.stop_times)
+        calendars.add(trip.service)
+
+    write_all(out_dir / 'stop_times.txt', stop_times)
+    write_all(out_dir / 'calendar.txt', list(calendars))
+
+
+
+
 
 if __name__ == '__main__':
     main()

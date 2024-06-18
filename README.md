@@ -4,7 +4,7 @@ This is an unofficial GTFS feed for the Harbour Air flight schedules.
 
 For more information on the service please see the [official website](https://harbourair.com/).
 
-### Permalink to download the latest feed: <https://github.com/npaun/gtfs-harbour-air/raw/master/harbour-air-gtfs.zip>
+### Permalink to download the latest feed: <https://github.com/npaun/gtfs-harbour-air/raw/main/harbour-air-gtfs.zip>
 
 ## Data notes
 
