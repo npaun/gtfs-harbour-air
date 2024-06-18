@@ -1,0 +1,14 @@
+stop_id,stop_name,stop_lat,stop_lon,wheelchair_accessible
+CXH,Vancouver Harbour,0,0,1
+YWH,Victoria Harbour,0,0,1
+ZNA,Nanaimo Harbour,0,0,1
+LKE,Seattle-Lake Union,0,0,1
+WPL,Powell River,0,0,1
+YGG,Salt Spring (Ganges Harbour),0,0,1
+YAQ,Maple Bay,0,0,1
+YHS,Sechelt (Sunshine Coast),0,0,1
+YTP,Tofino,0,0,1
+YWS,Whistler,0,0,1
+YQQ,Comox,0,0,1
+CAP5,Patricia Bay,0,0,1
+YPK,Pitt Meadows,0,0,1
