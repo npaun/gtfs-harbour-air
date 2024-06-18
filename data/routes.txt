@@ -2,14 +2,14 @@ route_id,agency_id,route_long_name,route_type,route_color,route_text_color,npaun
 CXH-YWH,YB,Vancouver Harbour - Victoria Harbour,1100,002D62,FFDE00,200
 CXH-ZNA,YB,Vancouver Harbour - Nanaimo Harbour,1100,002D62,FFDE00,1100
 CXH-LKE,YB,Vancouver Harbour - Seattle-Lake Union,1100,002D62,FFDE00,1600
-CXH-WPL,YB,Vancouver Harbour - Powell River,1100,002D62,FFDE00,1500
+CXH-WPL,YB,Vancouver Harbour - Powell River (Sunshine Coast),1100,002D62,FFDE00,1500
 CXH-YGG,YB,Vancouver Harbour - Salt Spring (Ganges Harbour),1100,002D62,FFDE00,400
 CXH-YAQ,YB,Vancouver Harbour - Maple Bay,1100,002D62,FFDE00,4100
 CXH-YHS,YB,Vancouver Harbour - Sechelt (Sunshine Coast),1100,002D62,FFDE00,900
 CXH-YTP,YB,Vancouver Harbour - Tofino,1100,002D62,FFDE00,1700
 CXH-YWS,YB,Vancouver Harbour - Whistler,1100,002D62,FFDE00,1200
 CXH-YQQ,YB,Vancouver Harbour - Comox,1100,002D62,FFDE00,100
-CXH-CAP5,YB,Vancouver Harbour - Patricia Bay,1100,002D62,FFDE00,2300
+CXH-CAP5,YB,Vancouver Harbour - Pat Bay,1100,002D62,FFDE00,2300
 YVR-YWH,YB,Richmond (YVR South) - Victoria Harbour,1100,002D62,FFDE00,500
 YVR-ZNA,YB,Richmond (YVR South) - Nanaimo Harbour,1100,002D62,FFDE00,600
 YVR-YGG,YB,Richmond (YVR South) - Salt Spring (Ganges Harbour),1100,002D62,FFDE00,480
@@ -17,7 +17,7 @@ YVR-YHS,YB,Richmond (YVR South) - Sechelt (Sunshine Coast),1100,002D62,FFDE00,13
 YVR-YAQ,YB,Richmond (YVR South) - Maple Bay,1100,002D62,FFDE00,4000
 YVR-YWS,YB,Richmond (YVR South) - Whistler,1100,002D62,FFDE00,1280
 YVR-YTP,YB,Richmond (YVR South) - Tofino,1100,002D62,FFDE00,1780
-YWH-YTP,YB,Victoria - Tofino,1100,002D62,FFDE00,1720
+YWH-YTP,YB,Victoria Harbour - Tofino,1100,002D62,FFDE00,1720
 YWH-YWS,YB,Victoria Harbour - Whistler,1100,002D62,FFDE00,1000
 YWH-YGG,YB,Victoria Harbour - Salt Spring (Ganges Harbour),1100,002D62,FFDE00,2500
 YWH-YPK,YB,Victoria Harbour - Pitt Meadows,1100,002D62,FFDE00,SUSPENDED
