@@ -177,7 +177,8 @@ def parse_tables(pdf_path, state):
     tables = camelot.read_pdf(pdf_path, flavor='stream', pages='1-end')
     flights = []
     try:
-        for table in tables:
+        for i, table in enumerate(tables):
+            print(f'\tTable {i}')
             parse_table(table.df.values.tolist(), state)
     except MismatchError:
         pass
@@ -228,10 +229,7 @@ def parse_table(tbl, state):
                 departure_time=arrival_time
             ))
 
-            print(trip.serialize())
-            print(trip.service.serialize())
-            print(trip.stop_times[0].serialize())
-            print(trip.stop_times[1].serialize())
+            print(f'\t\t{trip.serialize()}')
 
             state.flights.append(trip)
 
@@ -282,17 +280,15 @@ def main():
 
 
     calendars = set()
-    write_all(out_dir / 'trips.txt', state.flights)
-    stop_times = []
+    trips = {}
     for trip in state.flights:
-        stop_times.extend(trip.stop_times)
+        trips[trip.trip_id] = trip
         calendars.add(trip.service)
 
-    write_all(out_dir / 'stop_times.txt', stop_times)
     write_all(out_dir / 'calendar.txt', list(calendars))
-
-
-
+    write_all(out_dir / 'trips.txt', list(trips.values()))
+    stop_times = sum((trip.stop_times for trip in trips.values()), [])
+    write_all(out_dir / 'stop_times.txt', stop_times)
 
 
 if __name__ == '__main__':
