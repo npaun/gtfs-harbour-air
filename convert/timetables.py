@@ -69,6 +69,14 @@ class ParseState:
     def next_table(self):
         self.last_row = []
 
+def parse_route(schedule_dir, route, state):
+    state.expected_placemarks = Placemarks.parse(route.route_long_name, ' - ')
+    candidate_scheds = list(schedule_dir.glob(f'{route.npaun_series_id}[-_ ]*.pdf'))
+
+    for pdf_path in candidate_scheds:
+        print('adding to', route.route_long_name, 'from', pdf_path.name)
+        parse_tables(str(pdf_path), state)
+
 
 def parse_tables(pdf_path, state):
     state.next_file()
@@ -122,19 +130,18 @@ def resplit(row):
     return nonnull(sum((v.split(' ') for v in row), []))
 
 
+def csv_as_objects(csv_path):
+    with open(csv_path, 'r', encoding='utf-8') as fp:
+        for row_dict in csv.DictReader(fp):
+            yield types.SimpleNamespace(**row_dict)
 
-with open(sys.argv[1]) as csv_fp:
-    routes = list(csv.DictReader(csv_fp))
 
-schedule_dir = Path(sys.argv[2])
-state = ParseState()
-for route in routes:
-    route = types.SimpleNamespace(**route)
-    state.expected_placemarks = Placemarks.parse(route.route_long_name, ' - ')
-    candidate_scheds = list(schedule_dir.glob(f'{route.npaun_series_id}[-_ ]*.pdf'))
-    
-    for pdf_path in candidate_scheds:
-        print('adding to', route.route_long_name, 'from', pdf_path.name)
-        parse_tables(str(pdf_path), state)
+def main():
+    routes = csv_as_objects(sys.argv[1])
+    schedule_dir = Path(sys.argv[2])
+    state = ParseState()
+    for route in routes:
+        parse_route(schedule_dir, route, state)
 
-print(state.flights)
+if __name__ == '__main__':
+    main()
