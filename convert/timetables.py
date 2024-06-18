@@ -1,19 +1,45 @@
 import camelot
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import datetime
 import csv
 from pathlib import Path
 import types
 import re
+from typing import Any
+
+
+RE_SPACE = re.compile(r'\s+')
+
+
+class MismatchError(Exception):
+    pass
 
 
 @dataclass
 class Placemarks:
-    origin: str
-    dest: str
+    origin: str = ''
+    dest: str = ''
     direction_id: int = -1 
-    
+
+    @classmethod
+    def parse(cls, text, delim):
+        origin, dest = text.split(delim)
+        return cls(cls.canonicalize(origin), cls.canonicalize(dest))
+
+    @staticmethod
+    def canonicalize(text):
+        return RE_SPACE.sub(' ', text.replace('-', ' '))
+
+    def set_direction_wrt(self, other):
+        if (other.origin, other.dest) == (self.origin, self.dest):
+            self.direction_id = 0
+        elif (other.origin, other.dest) == (self.dest, self.origin):
+            self.direction_id = 1
+        else:
+            raise MismatchError()
+
+
 @dataclass
 class Flight:
     placemarks: Placemarks
@@ -30,36 +56,44 @@ class Flight:
     saturday: bool
     sunday: bool
 
-def parse_tables(pdf_path, expected_placemarks):
+@dataclass
+class ParseState:
+    expected_placemarks: Placemarks = Placemarks()
+    flights: list[Flight] = field(default_factory=list)
+    placemarks: Placemarks = Placemarks()
+    last_row: list[Any] = field(default_factory=list) 
+
+    def next_file(self):
+        self.placemarks = Placemarks()
+
+    def next_table(self):
+        self.last_row = []
+
+
+def parse_tables(pdf_path, state):
+    state.next_file()
     tables = camelot.read_pdf(pdf_path, flavor='stream', pages='1-end')
-    last_placemarks = None
     flights = []
     try:
         for table in tables:
-            last_placemarks, flights_tbl = parse_table(table.df.values.tolist(), expected_placemarks, last_placemarks)
-            flights.extend(flights_tbl)
-            print('---')
+            parse_table(table.df.values.tolist(), state)
     except MismatchError:
         pass
-    return flights
 
 
-def parse_table(tbl, expected_placemarks, last_placemarks):
-    last_row = []
-    placemarks = last_placemarks
-    flights = []
+def parse_table(tbl, state):
+    state.next_table()
     for row in tbl:
         nn_row = nonnull(row)
         if is_header(nn_row):
-            origin, dest = nonnull(last_row)[0].split(' to ')
-            placemarks = Placemarks(canonicalize_place(origin), canonicalize_place(dest))
-            placemarks.direction_id = align_placemarks(expected_placemarks, placemarks)
+            state.placemarks = Placemarks.parse(state.last_row[0], ' to ')
+            state.placemarks.set_direction_wrt(state.expected_placemarks)
         elif len(nn_row) == 1:
             pass
         else:
             rs_row = resplit(nn_row)
-            flight = Flight(
-                    placemarks=placemarks,
+            state.flights.append(Flight(
+                    placemarks=state.placemarks,
                     flight_no=int(rs_row[0]),
                     start_date=datetime.datetime.strptime(rs_row[1], '%d-%b-%y'),
                     end_date=datetime.datetime.strptime(rs_row[2], '%d-%b-%y'),
@@ -72,12 +106,8 @@ def parse_table(tbl, expected_placemarks, last_placemarks):
                     friday=rs_row[11] == 'F',
                     saturday=rs_row[12] == 'Sa',
                     sunday=rs_row[13] == 'Su'
-                )
-            flights.append(flight)
-
-        last_row = nn_row
-
-    return placemarks, flights
+                ))
+        state.last_row = nn_row
 
 
 def is_header(row):
@@ -87,39 +117,24 @@ def is_header(row):
 def nonnull(row):
     return [v.strip() for v in row if v.strip()]
 
+
 def resplit(row):
     return nonnull(sum((v.split(' ') for v in row), []))
 
-RE_SPACE = re.compile(r'\s+')
-
-def canonicalize_place(place):
-    return RE_SPACE.sub(' ', place.replace('-', ' '))
 
 
-class MismatchError(Exception):
-    pass
-
-
-def align_placemarks(expected, actual):
-    if (expected.origin, expected.dest) == (actual.origin, actual.dest):
-        return 0
-    elif (expected.origin, expected.dest) == (actual.dest, actual.origin):
-        return 1
-    else:
-        raise MismatchError()
-
-with open(sys.argv[1], 'r') as csv_fp:
+with open(sys.argv[1]) as csv_fp:
     routes = list(csv.DictReader(csv_fp))
 
 schedule_dir = Path(sys.argv[2])
+state = ParseState()
 for route in routes:
     route = types.SimpleNamespace(**route)
-    origin, dest = route.route_long_name.split(' - ')
-    expected_placemarks = Placemarks(canonicalize_place(origin), canonicalize_place(dest))
-    #print(expected_placemarks, route.npaun_series_id)
+    state.expected_placemarks = Placemarks.parse(route.route_long_name, ' - ')
     candidate_scheds = list(schedule_dir.glob(f'{route.npaun_series_id}[-_ ]*.pdf'))
-    flights_all = []
+    
     for pdf_path in candidate_scheds:
-        flights_all.extend(parse_tables(str(pdf_path), expected_placemarks))
+        print('adding to', route.route_long_name, 'from', pdf_path.name)
+        parse_tables(str(pdf_path), state)
 
-    print(flights_all)
+print(state.flights)
