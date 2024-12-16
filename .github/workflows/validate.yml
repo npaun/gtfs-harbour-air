@@ -1,4 +1,4 @@
-name: Publish GTFS feed
+name: Validate GTFS feed
 on:
   workflow_dispatch:
 
