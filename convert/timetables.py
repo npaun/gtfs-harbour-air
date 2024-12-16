@@ -10,7 +10,7 @@ import re
 from typing import Any
 
 
-RE_SPACE = re.compile(r'\s+')
+RE_SPACE = re.compile(r"\s+")
 
 
 class MismatchError(Exception):
@@ -19,8 +19,8 @@ class MismatchError(Exception):
 
 @dataclass
 class Placemarks:
-    origin: str = ''
-    dest: str = ''
+    origin: str = ""
+    dest: str = ""
 
     @classmethod
     def parse(cls, text, delim):
@@ -29,7 +29,7 @@ class Placemarks:
 
     @staticmethod
     def canonicalize(text):
-        return RE_SPACE.sub(' ', text.replace('-', ' '))
+        return RE_SPACE.sub(" ", text.replace("-", " "))
 
 
 @dataclass(frozen=True)
@@ -46,34 +46,53 @@ class Calendar:
 
     @staticmethod
     def gtfs_date(date_val):
-        return date_val.strftime('%Y%m%d')
+        return date_val.strftime("%Y%m%d")
 
     @property
     def day_mask(self):
-        days = [self.monday, self.tuesday, self.wednesday, self.thursday, self.friday, self.saturday, self.sunday]
-        return ''.join(str(int(day)) for day in days)
+        days = [
+            self.monday,
+            self.tuesday,
+            self.wednesday,
+            self.thursday,
+            self.friday,
+            self.saturday,
+            self.sunday,
+        ]
+        return "".join(str(int(day)) for day in days)
 
     @property
     def service_id(self):
-        return f'{Calendar.gtfs_date(self.start_date)}-{Calendar.gtfs_date(self.end_date)}-{self.day_mask}'
-
+        return f"{Calendar.gtfs_date(self.start_date)}-{Calendar.gtfs_date(self.end_date)}-{self.day_mask}"
 
     @staticmethod
     def header():
-        return ('service_id', 'start_date', 'end_date', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday')
+        return (
+            "service_id",
+            "start_date",
+            "end_date",
+            "monday",
+            "tuesday",
+            "wednesday",
+            "thursday",
+            "friday",
+            "saturday",
+            "sunday",
+        )
 
     def serialize(self):
-        return (self.service_id, 
-                Calendar.gtfs_date(self.start_date), 
-                Calendar.gtfs_date(self.end_date),
-                int(self.monday),
-                int(self.tuesday),
-                int(self.wednesday),
-                int(self.thursday),
-                int(self.friday),
-                int(self.saturday),
-                int(self.sunday)
-                )
+        return (
+            self.service_id,
+            Calendar.gtfs_date(self.start_date),
+            Calendar.gtfs_date(self.end_date),
+            int(self.monday),
+            int(self.tuesday),
+            int(self.wednesday),
+            int(self.thursday),
+            int(self.friday),
+            int(self.saturday),
+            int(self.sunday),
+        )
 
 
 @dataclass
@@ -81,24 +100,25 @@ class StopTime:
     stop_id: str
     arrival_time: datetime.time
     departure_time: datetime.time
-    trip_id: str = ''
+    trip_id: str = ""
     stop_sequence: int = -1
 
     @staticmethod
     def gtfs_time(time_val):
-        return time_val.strftime('%H:%M:%S')
+        return time_val.strftime("%H:%M:%S")
 
     @staticmethod
     def header():
-        return ('trip_id', 'stop_sequence', 'stop_id', 'arrival_time', 'departure_time')
+        return ("trip_id", "stop_sequence", "stop_id", "arrival_time", "departure_time")
 
     def serialize(self):
-        return (self.trip_id,
-                self.stop_sequence,
-                self.stop_id,
-                StopTime.gtfs_time(self.arrival_time),
-                StopTime.gtfs_time(self.departure_time)
-                )
+        return (
+            self.trip_id,
+            self.stop_sequence,
+            self.stop_id,
+            StopTime.gtfs_time(self.arrival_time),
+            StopTime.gtfs_time(self.departure_time),
+        )
 
 
 @dataclass
@@ -112,7 +132,7 @@ class Trip:
 
     @property
     def trip_id(self):
-        return f'YB{self.trip_short_name}-{self.service.service_id}'
+        return f"YB{self.trip_short_name}-{self.service.service_id}"
 
     def add_stop_time(self, st):
         st.trip_id = self.trip_id
@@ -121,16 +141,24 @@ class Trip:
 
     @staticmethod
     def header():
-        return ('trip_id', 'route_id', 'service_id', 'direction_id', 'trip_headsign', 'trip_short_name')
+        return (
+            "trip_id",
+            "route_id",
+            "service_id",
+            "direction_id",
+            "trip_headsign",
+            "trip_short_name",
+        )
 
     def serialize(self):
-        return (self.trip_id,
-                self.route_id,
-                self.service.service_id,
-                self.direction_id,
-                self.trip_headsign,
-                self.trip_short_name
-                )
+        return (
+            self.trip_id,
+            self.route_id,
+            self.service.service_id,
+            self.direction_id,
+            self.trip_headsign,
+            self.trip_short_name,
+        )
 
 
 @dataclass
@@ -141,7 +169,7 @@ class ParseState:
     flights: list[Trip] = field(default_factory=list)
     placemarks: Placemarks = Placemarks()
     direction_id: int = -1
-    last_row: list[Any] = field(default_factory=list) 
+    last_row: list[Any] = field(default_factory=list)
 
     def next_file(self):
         self.placemarks = Placemarks()
@@ -163,25 +191,42 @@ class ParseState:
 
 def parse_route(schedule_dir, route, state):
     state.route = route
-    state.expected_placemarks = Placemarks.parse(route.route_long_name, ' - ')
-    state.stops = route.route_id.split('-')
-    candidate_scheds = list(schedule_dir.glob(f'{route.npaun_series_id}[-_ ]*.pdf'))
+    state.expected_placemarks = Placemarks.parse(route.route_long_name, " - ")
+    state.stops = route.route_id.split("-")
+    candidate_scheds = list(schedule_dir.glob(f"{route.npaun_series_id}[-_ ]*.pdf"))
 
     for pdf_path in candidate_scheds:
-        print('adding to', route.route_long_name, 'from', pdf_path.name)
+        print("adding to", route.route_long_name, "from", pdf_path.name)
         parse_tables(str(pdf_path), state)
 
 
 def parse_tables(pdf_path, state):
     state.next_file()
-    tables = camelot.read_pdf(pdf_path, flavor='stream', pages='1-end')
-    flights = []
+    tables = camelot.read_pdf(pdf_path, flavor="stream", pages="1-end")
     try:
         for i, table in enumerate(tables):
-            print(f'\tTable {i}')
+            print(f"\tTable {i}")
             parse_table(table.df.values.tolist(), state)
     except MismatchError:
         pass
+
+
+@dataclass
+class ScheduleRow:
+    flight_no: str
+    start_date: str
+    end_date: str
+    departure_time: str
+    departure_ampm: str
+    arrival_time: str
+    arrival_ampm: str
+    monday: str
+    tuesday: str
+    wednesday: str
+    thursday: str
+    friday: str
+    saturday: str
+    sunday: str
 
 
 def parse_table(tbl, state):
@@ -189,47 +234,60 @@ def parse_table(tbl, state):
     for row in tbl:
         nn_row = nonnull(row)
         if is_header(nn_row):
-            state.placemarks = Placemarks.parse(state.last_row[0], ' to ')
-            state.direction_id = ParseState.get_direction_wrt(state.expected_placemarks, state.placemarks)
+            state.placemarks = Placemarks.parse(state.last_row[0], " to ")
+            state.direction_id = ParseState.get_direction_wrt(
+                state.expected_placemarks, state.placemarks
+            )
         elif len(nn_row) == 1:
             pass
+        elif nn_row[0] == "Click Here":
+            pass
         else:
-            rs_row = resplit(nn_row)
+            try:
+                rs_row = ScheduleRow(*resplit(nn_row))
+            except TypeError:
+                print("Uninterpretable row", nn_row)
+                continue
+
             trip = Trip(
-                    route_id=state.route.route_id,
-                    trip_short_name=int(rs_row[0]),
-                    direction_id=state.direction_id,
-                    trip_headsign=state.placemarks.dest,
-                    service=Calendar(
-                        start_date=parse_date(rs_row[1]),
-                        end_date=parse_date(rs_row[2]),
-                        monday=rs_row[7] == 'M',
-                        tuesday=rs_row[8] == 'Tu',
-                        wednesday=rs_row[9] == 'W',
-                        thursday=rs_row[10] == 'Th',
-                        friday=rs_row[11] == 'F',
-                        saturday=rs_row[12] == 'Sa',
-                        sunday=rs_row[13] == 'Su'
-                    )
+                route_id=state.route.route_id,
+                trip_short_name=int(rs_row.flight_no),
+                direction_id=state.direction_id,
+                trip_headsign=state.placemarks.dest,
+                service=Calendar(
+                    start_date=parse_date(rs_row.start_date),
+                    end_date=parse_date(rs_row.end_date),
+                    monday=rs_row.monday == "M",
+                    tuesday=rs_row.tuesday == "Tu",
+                    wednesday=rs_row.wednesday == "W",
+                    thursday=rs_row.thursday == "Th",
+                    friday=rs_row.friday == "F",
+                    saturday=rs_row.saturday == "Sa",
+                    sunday=rs_row.sunday == "Su",
+                ),
             )
-            
-            departure_time = parse_time(rs_row[3], rs_row[4])
-            arrival_time = parse_time(rs_row[5], rs_row[6])
-            stops = state.stops if state.direction_id == 0 else list(reversed(state.stops))
+            print(trip.serialize())
+            departure_time = parse_time(rs_row.departure_time, rs_row.departure_ampm)
+            arrival_time = parse_time(rs_row.arrival_time, rs_row.arrival_ampm)
+            stops = (
+                state.stops if state.direction_id == 0 else list(reversed(state.stops))
+            )
 
-            trip.add_stop_time(StopTime(
-                stop_id=stops[0],
-                arrival_time=departure_time,
-                departure_time=departure_time,
-            ))
+            trip.add_stop_time(
+                StopTime(
+                    stop_id=stops[0],
+                    arrival_time=departure_time,
+                    departure_time=departure_time,
+                )
+            )
 
-            trip.add_stop_time(StopTime(
-                stop_id=stops[1],
-                arrival_time=arrival_time,
-                departure_time=arrival_time
-            ))
-
-            print(f'\t\t{trip.serialize()}')
+            trip.add_stop_time(
+                StopTime(
+                    stop_id=stops[1],
+                    arrival_time=arrival_time,
+                    departure_time=arrival_time,
+                )
+            )
 
             state.flights.append(trip)
 
@@ -237,14 +295,15 @@ def parse_table(tbl, state):
 
 
 def parse_date(value):
-    return datetime.datetime.strptime(value, '%d-%b-%y').date() 
+    return datetime.datetime.strptime(value, "%d-%b-%y").date()
 
 
 def parse_time(time_val, ampm_val):
-    return datetime.datetime.strptime(f'{time_val} {ampm_val}', '%I:%M %p').time()
+    return datetime.datetime.strptime(f"{time_val} {ampm_val}", "%I:%M %p").time()
+
 
 def is_header(row):
-    return row[0] == 'Flight #'
+    return row[0] == "Flight #"
 
 
 def nonnull(row):
@@ -252,17 +311,17 @@ def nonnull(row):
 
 
 def resplit(row):
-    return nonnull(sum((v.split(' ') for v in row), []))
+    return nonnull(sum((v.replace("\n", " ").split(" ") for v in row), []))
 
 
 def csv_as_objects(csv_path):
-    with open(csv_path, 'r', encoding='utf-8') as fp:
+    with open(csv_path, "r", encoding="utf-8") as fp:
         for row_dict in csv.DictReader(fp):
             yield types.SimpleNamespace(**row_dict)
 
 
 def write_all(csv_path, records):
-    with open(csv_path, 'w', encoding='utf-8') as fp:
+    with open(csv_path, "w", encoding="utf-8") as fp:
         wr = csv.writer(fp)
         wr.writerow(records[0].header())
         for row in records:
@@ -278,18 +337,17 @@ def main():
     for route in routes:
         parse_route(schedule_dir, route, state)
 
-
     calendars = set()
     trips = {}
     for trip in state.flights:
         trips[trip.trip_id] = trip
         calendars.add(trip.service)
 
-    write_all(out_dir / 'calendar.txt', list(calendars))
-    write_all(out_dir / 'trips.txt', list(trips.values()))
+    write_all(out_dir / "calendar.txt", list(calendars))
+    write_all(out_dir / "trips.txt", list(trips.values()))
     stop_times = sum((trip.stop_times for trip in trips.values()), [])
-    write_all(out_dir / 'stop_times.txt', stop_times)
+    write_all(out_dir / "stop_times.txt", stop_times)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

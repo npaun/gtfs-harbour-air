@@ -17,6 +17,8 @@ YVR-YHS,YB,Richmond (YVR South) - Sechelt (Sunshine Coast),1100,002D62,FFDE00,13
 YVR-YAQ,YB,Richmond (YVR South) - Maple Bay,1100,002D62,FFDE00,4000
 YVR-YWS,YB,Richmond (YVR South) - Whistler,1100,002D62,FFDE00,1280
 YVR-YTP,YB,Richmond (YVR South) - Tofino,1100,002D62,FFDE00,1780
+YVR-WPL,YB,Richmond (YVR South) - Powell River (Sunshine Coast),1580,002D62,FFDE00,1580
+YVR-YJJ,YB,Vancouver International Airport’s (YVR) South Terminal - YYJ Victoria International Airport,300,002D62,FFDE00,300
 YWH-YTP,YB,Victoria Harbour - Tofino,1100,002D62,FFDE00,1720
 YWH-YWS,YB,Victoria Harbour - Whistler,1100,002D62,FFDE00,1000
 YWH-YGG,YB,Victoria Harbour - Salt Spring (Ganges Harbour),1100,002D62,FFDE00,2500
